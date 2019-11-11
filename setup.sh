@@ -7,8 +7,18 @@
 DOMAIN="argus-fito.ru"
 MAIL_DOMAIN="mail."$DOMAIN
 
+DB_USER="root"
+DB_PASS="GhI!2018"
+
+POSTFIX_DB_USER="postfix"
+POSTFIX_DB_NAME="postfix"
+POSTFIX_DB_PASS="postfix"
+
 yum install -y httpd php phpmyadmin mariadb mariadb-server php-imap
 wget --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-dovecot/master/phpMyadmin.conf -O /etc/httpd/conf.d/phpMyAdmin.conf
+
+#create database for PostFix
+mysql --user="$DB_USER" --password="DB_PASS" --database="$POSTFIX_DB_NAME" --execute="CREATE USER '$POSTFIX_DB_USER'@'%' IDENTIFIED BY '***';GRANT ALL PRIVILEGES ON *.* TO '$POSTFIX_DB_USER'@'%' IDENTIFIED BY '***' REQUIRE NONE WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0;CREATE DATABASE IF NOT EXISTS `$POSTFIX_DB_NAME`;GRANT ALL PRIVILEGES ON `$POSTFIX_DB_NAME`.* TO '$POSTFIX_DB_USER'@'%';"
 
 sed -i 's/#ServerName www.example.com:80/ServerName '$MAIL_DOMAIN':80/g' /etc/httpd/conf/httpd.conf
 
