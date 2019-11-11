@@ -8,7 +8,7 @@ DOMAIN="argus-fito.ru"
 MAIL_DOMAIN="mail."$DOMAIN
 
 DB_USER="root"
-DB_PASS="GhI!2018"
+DB_PASS="***"
 
 POSTFIX_DB_USER="postfix"
 POSTFIX_DB_NAME="postfix"
