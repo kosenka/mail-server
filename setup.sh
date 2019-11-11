@@ -7,7 +7,7 @@
 DOMAIN = "argus-fito.ru"
 MAIL_DOMAIN = "mail."$DOMAIN
 
-yum install httpd php phpmyadmin mariadb mariadb-server php-imap
+yum install -y httpd php phpmyadmin mariadb mariadb-server php-imap
 systemctl start httpd
 systemctl enable httpd
 systemctl start mariadb
