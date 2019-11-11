@@ -8,6 +8,8 @@ DOMAIN="argus-fito.ru"
 MAIL_DOMAIN="mail."$DOMAIN
 
 yum install -y httpd php phpmyadmin mariadb mariadb-server php-imap
+wget --no-check-certificate --no-cache --no-cookies https://sourceforge.net/projects/postfixadmin/files/postfixadmin/postfixadmin-3.0.2/postfixadmin-3.0.2.tar.gz/download -O postfixadmin-3.0.2.tar.gz 
+
 sed -i 's/#ServerName www.example.com:80/ServerName '$MAIL_DOMAIN':80/g' /etc/httpd/conf/httpd.conf
 
 systemctl start httpd
