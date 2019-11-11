@@ -14,7 +14,7 @@ systemctl start mariadb
 systemctl enable mariadb
 /usr/bin/mysql_secure_installation
 cd /usr/src
-wget https://downloads.sourceforge.net/project/postfixadmin/postfixadmin/postfixadmin-3.0.2/postfixadmin-3.0.2.tar.gz
+wget --no-check-certificate --no-cache --no-cookies https://sourceforge.net/projects/postfixadmin/files/postfixadmin/postfixadmin-3.0.2/postfixadmin-3.0.2.tar.gz/download -O postfixadmin-3.0.2.tar.gz 
 tar -xvzf postfixadmin-*
 mv /usr/src/postfixadmin-3.0.2 /var/www/html/postfixadmin
 chown -R apache. /var/www/html/postfixadmin/
