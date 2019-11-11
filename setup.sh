@@ -22,5 +22,4 @@ wget --no-check-certificate --no-cache --no-cookies https://sourceforge.net/proj
 tar -xvzf postfixadmin-3.0.2.tar.gz
 mv /usr/src/postfixadmin-3.0.2 /var/www/html/postfixadmin
 chown -R apache. /var/www/html/postfixadmin/
-sed -i 's/$CONF['encrypt'] = 'md5crypt';/$CONF['encrypt'] = 'CRAM-MD5';/g' /var/www/html/postfixadmin/config.inc.php
-
+sed -i "s/= 'md5crypt'/= 'CRAM-MD5'/g" /var/www/html/postfixadmin/config.inc.php
