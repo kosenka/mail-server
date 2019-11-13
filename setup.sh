@@ -34,7 +34,7 @@ echo -e "\e[92mGetting file phpMyAdmin.conf ...\e[39m"
 wget --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-dovecot/master/phpMyadmin.conf -O /etc/httpd/conf.d/phpMyAdmin.conf
 
 sed -i 's/#ServerName www.example.com:80/ServerName '$MAIL_DOMAIN':80/g' /etc/httpd/conf/httpd.conf
-sed -i 's/ServerAdmin root@localhost/ServerAdmin root@${MAIL_DOMAIN}/g' /etc/httpd/conf/httpd.conf
+sed -i 's/ServerAdmin root@localhost/ServerAdmin root@$DOMAIN/g' /etc/httpd/conf/httpd.conf
 
 echo -e "\e[92mStoping/Starting services ...\e[39m"
 systemctl stop postfix
