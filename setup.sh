@@ -1,10 +1,16 @@
 #!/bin/bash
 
 #
+# postfix-postfixadmin-dovecot-roundcube-httpd-let's encrypt-opendkim
+#
+# данный скрипт основан на "выжимке" из страниц
 # https://serveradmin.ru/nastroyka-postfix-dovecot-centos-7/
+# https://andreyex.ru/centos-7/bezopasnyj-apache-s-let-s-encrypt-na-centos-7/
+# http://bozza.ru/art-170.html
+# wget --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-dovecot/master/setup.sh -O setup.sh && chmod u+x setup.sh
 #
 
-DOMAIN="mail.ru"
+DOMAIN="***.ru"
 MAIL_DOMAIN="mail."$DOMAIN
 
 ROOT_DB_USER="root"
@@ -47,7 +53,20 @@ wget --no-check-certificate --no-cache --no-cookies https://sourceforge.net/proj
 tar -xvzf postfixadmin-3.0.2.tar.gz
 rm -rf /var/www/html/postfixadmin
 mv /usr/src/postfixadmin-3.0.2 /var/www/html/postfixadmin
+
+touch /etc/httpd/conf.d/postfixadmin.conf
+tee /etc/httpd/conf.d/postfixadmin.conf << END
+Alias /postfixadmin /var/www/html/postfixadmin
+
+<Directory /var/www/html/postfixadmin>
+    AddDefaultCharset UTF-8
+    Require all granted
+</Directory>
+END
+
 chown -R apache. /var/www/html/postfixadmin/
+
+systemctl restart httpd
 
 echo -e "\e[92mSetuping POSTFIXADMIN ...\e[39m"
 DOVEADM=$(whereis -b doveadm | grep doveadm: | awk '{print $2}')
@@ -108,8 +127,8 @@ daemon_directory = /usr/libexec/postfix
 data_directory = /var/lib/postfix
 mail_owner = postfix
 
-myhostname = ${MAIL_DOMAIN}
 mydomain = ${DOMAIN}
+myhostname = ${MAIL_DOMAIN}
 myorigin = \$myhostname
 
 inet_interfaces = all
@@ -125,7 +144,7 @@ alias_database = hash:/etc/aliases
 smtpd_banner = \$myhostname ESMTP
 
 debug_peer_level = 2
-# РЎС‚СЂРѕРєРё СЃ PATH Рё ddd РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ СЃ РѕС‚СЃС‚СѓРїРѕРј РІ РІРёРґРµ С‚Р°Р±СѓР»СЏС†РёРё РѕС‚ РЅР°С‡Р°Р»Р° СЃС‚СЂРѕРєРё
+# Строки с PATH и ddd должны быть с отступом в виде табуляции от начала строки
 debugger_command =
          PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
          ddd \$daemon_directory/\$process_name \$process_id & sleep 5
@@ -185,7 +204,7 @@ smtpd_tls_key_file = /etc/postfix/certs/key.pem
 smtpd_tls_cert_file = /etc/postfix/certs/cert.pem
 tls_random_source = dev:/dev/urandom
 
-# РћРіСЂР°РЅРёС‡РµРЅРёРµ РјР°РєСЃРёРјР°Р»СЊРЅРѕРіРѕ СЂР°Р·РјРµСЂР° РїРёСЃСЊРјР° РІ Р±Р°Р№С‚Р°С…
+# Ограничение максимального размера письма в байтах
 message_size_limit = 20000000
 smtpd_soft_error_limit = 10
 smtpd_hard_error_limit = 15
@@ -205,7 +224,7 @@ smtpd_sasl_security_options = noanonymous
 smtpd_sasl_type = dovecot
 smtpd_sasl_path = private/dovecot-auth
 
-# Р”РёСЂРµРєС‚РѕСЂРёСЏ РґР»СЏ С…СЂР°РЅРµРЅРёСЏ РїРѕС‡С‚С‹
+# Директория для хранения почты
 virtual_mailbox_base = /mnt/mail
 virtual_minimum_uid = 1000
 virtual_uid_maps = static:1000
@@ -302,21 +321,92 @@ openssl req -new -x509 -days 3650 -nodes -out /etc/postfix/certs/cert.pem -keyou
 touch /etc/postfix/recipient_bcc_maps
 touch /etc/postfix/sender_bcc_maps
 postmap /etc/postfix/recipient_bcc_maps /etc/postfix/sender_bcc_maps
+
+mkdir /etc/postfix/lists
+cd /etc/postfix/lists && touch white_client_ip black_client_ip white_client black_client white_helo block_dsl mx_access
+
+tee /etc/postfix/lists/white_client_ip << END
+195.28.34.162 OK
+141.197.4.160 OK
+END
+
+tee /etc/postfix/lists/black_client_ip << END
+205.201.130.163 REJECT You IP are blacklisted!
+198.2.129.162 REJECT You IP are blacklisted!
+END
+
+tee /etc/postfix/lists/white_client << END
+# Принимать всю почту с домена яндекс
+yandex.ru OK
+# Разрешить конкретный ящик
+spammer@mail.ru OK
+END
+
+tee /etc/postfix/lists/black_client << END
+$DOMAIN 554 Stop spam from my name
+# Блокировать всю почту с домена mail.ru
+#mail.ru REJECT You domain are blacklisted!
+# Блокировать конкретный ящик
+spam@rambler.ru REJECT You e-mail are blacklisted!
+END
+
+tee /etc/postfix/lists/white_helo << END
+# Могут попадаться вот такие адреса, которые не пройдут наши проверки
+ka-s-ex01.itk.local     OK
+exchange.elcom.local    OK
+END
+
+tee /etc/postfix/lists/block_dsl << END
+/^dsl.*\..*\..*/i                               553 AUTO_DSL spam
+/dsl.*\..*\..*/i                                553 AUTO_DSL1 spam
+/[ax]dsl.*\..*\..*/i                            553 AUTO_XDSL spam
+/client.*\..*\..*/i                             553 AUTO_CLIENT spam
+/cable.*\..*\..*/i                              553 AUTO_CABLE spam
+/pool.*\..*\..*/i                               553 AUTO_POOL spam
+/dial.*\..*\..*/i                               553 AUTO_DIAL spam
+/ppp.*\..*\..*/i                                553 AUTO_PPP spam
+/dslam.*\..*\..*/i                              553 AUTO_DSLAM spam
+/node.*\..*\..*/i                               553 AUTO_NODE spam
+/([0-9]*-){3}[0-9]*(\..*){2,}/i                 553 SPAM_ip-add-rr-ess_networks
+/([0-9]*\.){4}(.*\.){3,}.*/i                    553 SPAM_ip-add-rr-ess_networks
+/.*\.pppool\..*/i                               553 SPAM_POOL
+/[0-9]*-[0-9]*-[0-9]*-[0-9]*-tami\.tami\.pl/i   553 SPAM_POOL
+/pool-[0-9]*-[0-9]*-[0-9]*-[0-9]*\..*/i         553 SPAM_POOL
+/.*-[0-9]*-[0-9]*-[0-9]*-[0-9]*\.gtel.net.mx/i  553 SPAM_POOL
+/dhcp.*\..*\..*/i                               553 SPAM_DHCP
+END
+
+tee /etc/postfix/lists/mx_access << END
+127.0.0.1      DUNNO 
+127.0.0.2      550 Domains not registered properly
+0.0.0.0/8      REJECT Domain MX in broadcast network 
+10.0.0.0/8     REJECT Domain MX in RFC 1918 private network 
+127.0.0.0/8    REJECT Domain MX in loopback network 
+169.254.0.0/16 REJECT Domain MX in link local network 
+172.16.0.0/12  REJECT Domain MX in RFC 1918 private network 
+192.0.2.0/24   REJECT Domain MX in TEST-NET network 
+192.168.0.0/16 REJECT Domain MX in RFC 1918 private network 
+224.0.0.0/4    REJECT Domain MX in class D multicast network 
+240.0.0.0/5    REJECT Domain MX in class E reserved network 
+248.0.0.0/5    REJECT Domain MX in reserved network
+END
+
+postmap touch white_client_ip black_client_ip white_client black_client white_helo block_dsl mx_access
 }
 
 function installDovecot {
 echo -e "\e[92mConfiguring Dovecot: /etc/dovecot/dovecot.conf ...\e[39m"
 tee /etc/dovecot/dovecot.conf << END
-# РњС‹ РЅРµ РёСЃРїРѕР»СЊР·СѓРµРј СЃРїРµС†РёР°Р»РёР·РёСЂРѕРІР°РЅРЅС‹Рµ С„Р°Р№Р»С‹ РёР· РїРѕСЃС‚Р°РІРєРё Dovecot РёР· РїР°РїРєРё /etc/dovecot/conf.d/.
-# РћСЃРЅРѕРІРЅР°СЏ РїСЂРёС‡РёРЅР°: РѕС‚СЃСѓС‚СЃС‚РІРёРµ СЏСЃРЅРѕРіРѕ СЂСѓРєРѕРІРѕРґСЃС‚РІР° РїРѕ РёС… РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЋ. Рђ С‚Р°РєР¶Рµ СЃСЂР°РІРЅРёС‚РµР»СЊРЅРѕ РЅРµР±РѕР»СЊС€РѕР№
-# СЂР°Р·РјРµСЂ РІСЃРµРіРѕ РєРѕРЅС„РёРіР° (РІСЃРµ РїРµСЂРµРґ РіР»Р°Р·Р°РјРё, РЅРµС‚ РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё СЂР°СЃРєРёРґС‹РІР°С‚СЊ РїРѕ РѕС‚РґРµР»СЊРЅС‹Рј С„Р°Р№Р»Р°Рј).
+# Мы не используем специализированные файлы из поставки Dovecot из папки /etc/dovecot/conf.d/.
+# Основная причина: отсутствие ясного руководства по их использованию. А также сравнительно небольшой
+# размер всего конфига (все перед глазами, нет необходимости раскидывать по отдельным файлам).
 #!include conf.d/*.conf
 
-# РќРµС‚ РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё СЏРІРЅРѕ СѓРєР°Р·С‹РІР°С‚СЊ imaps Рё pop3s - Dovecot 2.* РїРѕ-СѓРјРѕР»С‡Р°РЅРёСЋ РёС… РІРєР»СЋС‡Р°РµС‚.
+# Нет необходимости явно указывать imaps и pop3s - Dovecot 2.* по-умолчанию их включает.
 protocols = imap pop3 sieve lmtp
 listen = *
 
-# Р—Р°РІРµСЂС€Р°С‚СЊ РІСЃРµ РґРѕС‡РµСЂРЅРёРµ РїСЂРѕС†РµСЃСЃС‹, РµСЃР»Рё Р·Р°РІРµСЂС€РµРЅ РјР°СЃС‚РµСЂ-РїСЂРѕС†РµСЃСЃ
+# Завершать все дочерние процессы, если завершен мастер-процесс
 shutdown_clients = yes
 
 mail_plugins = mailbox_alias acl
@@ -327,12 +417,12 @@ mail_gid = 1000
 first_valid_uid = 1000
 last_valid_uid = 1000
 
-# Р›РѕРі-С„Р°Р№Р»С‹. РџРѕРґСЂРѕР±РЅРµРµ: http://wiki2.dovecot.org/Logging
+# Лог-файлы. Подробнее: http://wiki2.dovecot.org/Logging
 log_path = /var/log/dovecot.log
 info_log_path = /var/log/dovecot/info.log
 debug_log_path = /var/log/dovecot/debug.log
 
-# РћС‚Р»Р°РґРєР°. Р•СЃР»Рё РІСЃРµ РЅР°СЃС‚СЂРѕРµРЅРѕ, РѕС‚РєР»СЋС‡Р°РµРј (no)
+# Отладка. Если все настроено, отключаем (no)
 # http://maint.unona.ru/doc/dovecot2.shtml
 mail_debug = yes
 auth_verbose = yes
@@ -351,29 +441,29 @@ ssl_cipher_list = ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDH
 ssl_dh_parameters_length = 2048
 ssl_prefer_server_ciphers = yes
 
-# Р—Р°РїСЂРµС‚ Р°СѓС‚РµРЅС‚РёС„РёРєР°С†РёРё РѕС‚РєСЂС‹С‚С‹Рј С‚РµРєСЃС‚РѕРј. yes - Р·Р°РїСЂРµС‚РёС‚СЊ, no - СЂР°Р·СЂРµС€РёС‚СЊ.
+# Запрет аутентификации открытым текстом. yes - запретить, no - разрешить.
 disable_plaintext_auth = yes
 
-# РЎРїРёСЃРѕРє СЂР°Р·СЂРµС€РµРЅРЅС‹С… СЃРёРјРІРѕР»РѕРІ РІ РёРјРµРЅРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ.
+# Список разрешенных символов в имене пользователя.
 auth_username_chars = abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890.-_@
 
-# Р Р°СЃРїРѕР»РѕР¶РµРЅРёРµ Рё С„РѕСЂРјР°С‚ С„Р°Р№Р»РѕРІ РїРѕС‡С‚С‹ (%d - РґРѕРјРµРЅ, %n - РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ).
+# Расположение и формат файлов почты (%d - домен, %n - имя пользователя).
 mail_location = maildir:/mnt/mail/%d/%u/
 
-# Р•СЃР»Рё РїСЂРё Р°СѓС‚РµРЅС‚РёС„РёРєР°С†РёРё РЅРµ СѓРєР°Р·Р°РЅ РґРѕРјРµРЅ, С‚Рѕ РґРѕР±Р°РІРёС‚СЊ СЌС‚РѕС‚ (РІ РґР°РЅРЅРѕРј РїСЂРёРјРµСЂРµ - РїСѓСЃС‚РѕР№)
+# Если при аутентификации не указан домен, то добавить этот (в данном примере - пустой)
 auth_default_realm = ${MAIL_DOMAIN}
 
-# Р”РѕСЃС‚СѓРїРЅС‹Рµ РІР°СЂРёР°РЅС‚С‹ Р°СѓС‚РµРЅС‚РёС„РёРєР°С†РёРё (PLAIN, DIGEST-MD5, CRAM-MD5...).
-# Р”Р»СЏ С‚РѕРіРѕ, С‡С‚РѕР±С‹ РёРјРµС‚СЊ РјРµРЅСЊС€Рµ РіРѕР»РѕРІРЅРѕР№ Р±РѕР»Рё СЃС‚Р°РІСЊС‚Рµ PLAIN
+# Доступные варианты аутентификации (PLAIN, DIGEST-MD5, CRAM-MD5...).
+# Для того, чтобы иметь меньше головной боли ставьте PLAIN
 auth_mechanisms = PLAIN LOGIN
 
-# РћРґРЅРѕ РёР· СЃР°РјС‹С… РІР°Р¶РЅС‹С… РјРµСЃС‚ - РїСЂРµРґРѕСЃС‚Р°РІР»РµРЅРёРµ СЃРѕРєРµС‚РѕРІ РґР»СЏ Р°СѓС‚РµРЅС‚РёС„РёРєР°С†РёРё РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№.
-# Р•СЃР»Рё РЅР°СЃС‚СЂРѕРµРЅРѕ РЅРµРІРµСЂРЅРѕ - РЅРёС‡РµРіРѕ СЂР°Р±РѕС‚Р°С‚СЊ РЅРµ Р±СѓРґРµС‚!
+# Одно из самых важных мест - предоставление сокетов для аутентификации пользователей.
+# Если настроено неверно - ничего работать не будет!
 service auth {
     # http://maint.unona.ru/doc/dovecot2.shtml
-    # РЈРєР°Р·С‹РІР°РµС‚, С‡С‚Рѕ РґР°РЅРЅС‹Р№ СЃРѕРєРµС‚ Р±СѓРґРµС‚ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ SMTP СЃРµСЂРІРµСЂ РґР»СЏ Р°СѓС‚РµРЅС‚РёС„РёРєР°С†РёРё.
-    # РЈРєР°Р·С‹РІР°РµС‚СЃСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ, РіСЂСѓРїРїР° Рё РїСЂР°РІР° РґРѕСЃС‚СѓРїР° Рє СЃРѕРєРµС‚Сѓ. Р’ РґР°РЅРЅРѕРј СЃР»СѓС‡Р°Рµ СЌС‚Рѕ postfix
-    # ("mail_owner = postfix" РІ С„Р°Р№Р»Рµ /etc/postfix/main.cf).
+    # Указывает, что данный сокет будет использовать SMTP сервер для аутентификации.
+    # Указывается пользователь, группа и права доступа к сокету. В данном случае это postfix
+    # ("mail_owner = postfix" в файле /etc/postfix/main.cf).
     unix_listener /var/spool/postfix/private/auth {
 	user = postfix
 	group = postfix
@@ -404,8 +494,8 @@ service lmtp {
  }
 }
 
-# Р—Р°РїСЂРѕСЃ РїР°СЂР°РјРµС‚СЂРѕРІ РІРёСЂС‚СѓР°Р»СЊРЅС‹С… РїРѕС‡С‚РѕРІС‹С… РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№
-# (Р»РѕРіРёРЅ, РїР°СЂРѕР»СЊ, РґРѕРјРµРЅ, Р°РєС‚РёРІРЅС‹Р№/РЅРµР°РєС‚РёРІРЅС‹Р№ Рё РґСЂ.)
+# Запрос параметров виртуальных почтовых пользователей
+# (логин, пароль, домен, активный/неактивный и др.)
 userdb {
     args = /etc/dovecot/dovecot-mysql.conf
     driver = sql
@@ -601,8 +691,8 @@ END
 
 mkdir /var/www/html/webmail/autodiscover
 wget --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-dovecot/master/autodiscover.xml -O /var/www/html/webmail/autodiscover/autodiscover.xml
-sed -i 's/MAIL_DOMAIN/${MAIL_DOMAIN}/g' /var/www/html/webmail/autodiscover/autodiscover.xml
-sed -i 's/DOMAIN/${DOMAIN}/g' /var/www/html/webmail/autodiscover/autodiscover.xml
+sed -i 's/MAIL_DOMAIN/'$MAIL_DOMAIN'/g' /var/www/html/webmail/autodiscover/autodiscover.xml
+sed -i 's/DOMAIN/'$DOMAIN'/g' /var/www/html/webmail/autodiscover/autodiscover.xml
 
 chown -R apache. /var/www/html/webmail
 
@@ -612,20 +702,26 @@ echo -e "\e[92mInitializing database RoundCube ...\e[39m"
 mysql -u root -p${ROOT_DB_PASS} --database=${ROUNDCUBE_DB_NAME} < /var/www/html/webmail/SQL/mysql.initial.sql
 }
 
-function opendkim_spf {
+function installOpenDkim() {
+echo -e "\e[92mInstalling OpenDkim ...\e[39m"
+
 yum install -y opendkim
+
 mkdir -p /etc/postfix/dkim && cd /etc/postfix/dkim
 opendkim-genkey -D /etc/postfix/dkim/ -d ${DOMAIN} -s mail
 mv mail.private ${MAIL_DOMAIN}.private
 mv mail.txt ${MAIL_DOMAIN}.txt
+
 touch keytable
 tee keytable << END
 mail._domainkey.${DOMAIN} ${DOMAIN}:mail:/etc/postfix/dkim/${MAIL_DOMAIN}.private
 END
+
 touch signingtable
 tee signingtable << END
 *@${DOMAIN} mail._domainkey.${DOMAIN}
 END
+
 chown root:opendkim *
 chmod u=rw,g=r,o= *
 
@@ -663,13 +759,98 @@ systemctl enable opendkim.service
 
 }
 
+function installLetsEncrypt() {
+echo -e "\e[92mInstalling Let's Encrypt ...\e[39m"
+
+yum install -y mod_ssl openssl epel-release certbot
+
+echo -e "\e[92mGenerating DHPARAM.PEM ...\e[39m"
+
+openssl dhparam -out /etc/ssl/certs/dhparam.pem 4096
+
+mkdir -p /var/lib/letsencrypt/.well-known
+chgrp apache /var/lib/letsencrypt
+chmod g+s /var/lib/letsencrypt
+
+touch /etc/httpd/conf.d/letsencrypt.conf
+tee /etc/httpd/conf.d/letsencrypt.conf << END
+Alias /.well-known/acme-challenge/ "/var/lib/letsencrypt/.well-known/acme-challenge/"
+<Directory "/var/lib/letsencrypt/">
+    AllowOverride None
+    Options MultiViews Indexes SymLinksIfOwnerMatch IncludesNoExec
+    Require method GET POST OPTIONS
+</Directory>
+END
+
+touch /etc/httpd/conf.d/ssl-params.conf
+tee /etc/httpd/conf.d/ssl-params.conf << END
+SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
+SSLProtocol All -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
+SSLHonorCipherOrder On
+Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+Header always set X-Frame-Options SAMEORIGIN;
+Header always set X-Content-Type-Options nosniff
+# Требует Apache >= 2.4
+SSLCompression off
+SSLUseStapling on
+SSLStaplingCache "shmcb:logs/stapling-cache(150000)"
+# Требует Apache >= 2.4.11
+SSLSessionTickets Off
+END
+
+systemctl restart httpd
+
+certbot certonly --agree-tos --email $POSTFIX_ADMIN_NAME --webroot -w /var/lib/letsencrypt/ -d $MAIL_DOMAIN
+
+cat /etc/letsencrypt/live/$MAIL_DOMAIN/cert.pem /etc/ssl/certs/dhparam.pem >/etc/letsencrypt/live/$MAIL_DOMAIN/cert.dh.pem
+
+touch /etc/httpd/conf.d/$MAIL_DOMAIN.conf
+tee -a /etc/httpd/conf.d/$MAIL_DOMAIN.conf << END
+<VirtualHost *:80> 
+  ServerName $MAIL_DOMAIN
+  Redirect permanent / https://$MAIL_DOMAIN/
+</VirtualHost>
+
+<VirtualHost *:443>
+  ServerName $MAIL_DOMAIN
+
+  <If "%{HTTP_HOST} == 'www.$MAIL_DOMAIN'">
+    Redirect permanent / https://$MAIL_DOMAIN/
+  </If>
+
+  DocumentRoot /var/www/html/webmail
+  ErrorLog /var/log/httpd/$MAIL_DOMAIN-error.log
+  CustomLog /var/log/httpd/$MAIL_DOMAIN-access.log combined
+
+  SSLEngine On
+  SSLCertificateFile /etc/letsencrypt/live/$MAIL_DOMAIN/cert.dh.pem
+  SSLCertificateKeyFile /etc/letsencrypt/live/$MAIL_DOMAIN/privkey.pem
+  SSLCertificateChainFile /etc/letsencrypt/live/$MAIL_DOMAIN/chain.pem
+</VirtualHost>
+END
+
+systemctl restart httpd
+
+echo -e "\e[92mAdding certbot to crontab ...\e[39m"
+crontab -l > mycron
+echo '0 */12 * * * certbot renew --cert-name '$MAIL_DOMAIN' --renew-hook "cat /etc/letsencrypt/live/'$MAIL_DOMAIN'/cert.pem /etc/ssl/certs/dhparam.pem >/etc/letsencrypt/live/'$MAIL_DOMAIN'/cert.dh.pem && systemctl restart httpd"' >> mycron
+crontab mycron
+rm mycron
+
+}
+
 ######## run ##############
 
-installFirst
-installPostfix
-installDovecot
-installRoundcube 
-opendkim_spf
+SCRIPT_PATH="/root/iptables_rules.sh"
+wget --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-postfixadmin-dovecot-roundcube-httpd-let-s-encrypt-opendkim/master/iptables_rules.sh -O $SCRIPT_PATH
+chmod u+x $SCRIPT_PATH
+
+#installFirst
+#installPostfix
+#installDovecot
+#installRoundcube 
+#installOpenDkim
+#installLetsEncrypt
 
 
 
