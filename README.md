@@ -1,4 +1,4 @@
-# postfix-dovecot-roundcube-httpd-let's encrypt-opendkim
+# postfix-postfixadmin-dovecot-roundcube-httpd-let's encrypt-opendkim
 
 данный скрипт основан на "выжимке" из страниц
 
