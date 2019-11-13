@@ -847,10 +847,6 @@ rm mycron
 
 ######## run ##############
 
-SCRIPT_PATH="/root/iptables_rules.sh"
-wget -q --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-postfixadmin-dovecot-roundcube-httpd-let-s-encrypt-opendkim/master/iptables_rules.sh -O $SCRIPT_PATH
-chmod u+x $SCRIPT_PATH
-
 installFirst
 installPostfix
 installDovecot
@@ -858,5 +854,14 @@ installRoundcube
 installOpenDkim
 installLetsEncrypt
 
+SCRIPT_PATH="/root/iptables_rules.sh"
+wget -q --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-postfixadmin-dovecot-roundcube-httpd-let-s-encrypt-opendkim/master/iptables_rules.sh -O $SCRIPT_PATH
+chmod u+x $SCRIPT_PATH
 
-
+echo "https://${MAIL_DOMAIN}"
+echo "https://${MAIL_DOMAIN}/postfixadmin"
+echo "https://${MAIL_DOMAIN}/phpmyadmin"
+echo " "
+echo "Execute ${SCRIPT_PATH} and restart server!"
+echo " "
+echo "Done."
