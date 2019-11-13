@@ -28,19 +28,19 @@ ROUNDCUBE_DB_NAME="roundcube"
 ROUNDCUBE_DB_PASS="roundcube"
 
 function installFirst {
-echo -e "\e[92mInstalling httpd  ...\e[39m"
+echo -e "\e[92mDownload and Installing httpd  ...\e[39m"
 yum install -q -y httpd 
 
-echo -e "\e[92mInstalling php phpmyadmin php-imap php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve ...\e[39m"
+echo -e "\e[92mDownload and Installing php phpmyadmin php-imap php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve ...\e[39m"
 yum install -q -y php phpmyadmin php-imap php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve
 
-echo -e "\e[92mInstalling mariadb mariadb-server ...\e[39m"
+echo -e "\e[92mDownload and Installing mariadb mariadb-server ...\e[39m"
 yum install -q -y mariadb mariadb-server 
 
 echo -e "\e[92mInstalling dovecot dovecot-mysql dovecot-pigeonhole ...\e[39m"
 yum install -q -y dovecot dovecot-mysql dovecot-pigeonhole 
 
-echo -e "\e[92mGetting file phpMyAdmin.conf ...\e[39m"
+echo -e "\e[92mDownload file phpMyAdmin.conf ...\e[39m"
 wget -q --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-dovecot/master/phpMyadmin.conf -O /etc/httpd/conf.d/phpMyAdmin.conf
 
 sed -i 's/#ServerName www.example.com:80/ServerName '$MAIL_DOMAIN':80/g' /etc/httpd/conf/httpd.conf
@@ -55,7 +55,7 @@ systemctl enable mariadb
 
 /usr/bin/mysql_secure_installation
 
-echo -e "\e[92mGetting and installing POSTFIXADMIN...\e[39m"
+echo -e "\e[92mDownload and installing POSTFIXADMIN...\e[39m"
 cd /usr/src
 wget -q --no-check-certificate --no-cache --no-cookies https://sourceforge.net/projects/postfixadmin/files/postfixadmin/postfixadmin-3.0.2/postfixadmin-3.0.2.tar.gz/download -O postfixadmin-3.0.2.tar.gz 
 tar -xvzf postfixadmin-3.0.2.tar.gz
@@ -677,7 +677,7 @@ GRANT ALL PRIVILEGES ON ${ROUNDCUBE_DB_NAME}.* TO '$3'@'localhost';
 FLUSH PRIVILEGES;
 MYSQL_SCRIPT
 
-echo -e "\e[92mInstalling RoundCube ...\e[39m"
+echo -e "\e[92mDownload and Installing RoundCube ...\e[39m"
 cd /usr/src
 wget -q --no-check-certificate --no-cache --no-cookies https://github.com/roundcube/roundcubemail/releases/download/1.2.9/roundcubemail-1.2.9-complete.tar.gz -O /usr/src/roundcubemail-1.2.9-complete.tar.gz
 tar -xzvf roundcubemail-*
@@ -770,7 +770,7 @@ systemctl enable opendkim.service
 }
 
 function installLetsEncrypt() {
-echo -e "\e[92mInstalling Let's Encrypt ...\e[39m"
+echo -e "\e[92mDownload and Installing Let's Encrypt ...\e[39m"
 
 yum install -q -y mod_ssl openssl epel-release certbot
 
