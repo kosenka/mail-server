@@ -34,8 +34,8 @@ yum install -q -y httpd
 echo -e "\e[92mInstalling php phpmyadmin php-imap php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve ...\e[39m"
 yum install -q -y php phpmyadmin php-imap php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve
 
-echo -e "\e[92mInstalling mariadb mariadb-server dovecot dovecot-mysql dovecot-pigeonhole ...\e[39m"
-yum install -q -y mariadb mariadb-server dovecot dovecot-mysql dovecot-pigeonhole 
+echo -e "\e[92mInstalling mariadb mariadb-server ...\e[39m"
+yum install -q -y mariadb mariadb-server 
 
 echo -e "\e[92mInstalling dovecot dovecot-mysql dovecot-pigeonhole ...\e[39m"
 yum install -q -y dovecot dovecot-mysql dovecot-pigeonhole 
