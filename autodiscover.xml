@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Autodiscover xmlns="http://schemas.microsoft.com/exchange/autodiscover/responseschema/2006">
+  <Response xmlns="http://schemas.microsoft.com/exchange/autodiscover/outlook/responseschema/2006a">
+    <Account>
+      <AccountType>email</AccountType>
+      <Action>settings</Action>
+      <!-- SMTP: SSL/TLS -->
+      <Protocol>
+        <Type>SMTP</Type>
+        <Server>MAIL_DOMAIN</Server>
+        <DomainName>DOMAIN</DomainName>
+        <DomainRequired>on</DomainRequired>
+        <Port>465</Port>
+        <SPA>off</SPA>
+        <SSL>on</SSL>
+        <AuthRequired>on</AuthRequired>
+      </Protocol>
+      <!-- SMTP: StartTLS -->
+      <Protocol>
+        <Type>SMTP</Type>
+        <Server>MAIL_DOMAIN</Server>
+        <DomainName>DOMAIN</DomainName>
+        <DomainRequired>on</DomainRequired>
+        <Port>587</Port>
+        <SPA>off</SPA>
+        <Encryption>TLS</Encryption>
+        <AuthRequired>on</AuthRequired>
+      </Protocol>
+      <!-- IMAP: SSL/TLS -->
+      <Protocol>
+        <Type>IMAP</Type>
+        <Server>MAIL_DOMAIN</Server>
+        <DomainName>DOMAIN</DomainName>
+        <DomainRequired>on</DomainRequired>
+        <Port>993</Port>
+        <SPA>off</SPA>
+        <SSL>on</SSL>
+        <AuthRequired>on</AuthRequired>
+      </Protocol>
+      <!-- IMAP: Insecure or StartTLS -->
+      <Protocol>
+        <Type>IMAP</Type>
+        <Server>MAIL_DOMAIN</Server>
+        <DomainName>DOMAIN</DomainName>
+        <DomainRequired>on</DomainRequired>
+        <Port>143</Port>
+        <SPA>off</SPA>
+        <Encryption>TLS</Encryption>
+        <AuthRequired>on</AuthRequired>
+      </Protocol>
+      <!-- POP3: SSL/TLS -->
+      <Protocol>
+        <Type>POP3</Type>
+        <Server>MAIL_DOMAIN</Server>
+        <DomainName>DOMAIN</DomainName>
+        <DomainRequired>on</DomainRequired>
+        <Port>995</Port>
+        <SPA>off</SPA>
+        <SSL>on</SSL>
+        <AuthRequired>on</AuthRequired>
+      </Protocol>
+      <!-- POP3: Insecure or StartTLS -->
+      <Protocol>
+        <Type>POP3</Type>
+        <Server>MAIL_DOMAIN</Server>
+        <DomainName>DOMAIN</DomainName>
+        <DomainRequired>on</DomainRequired>
+        <Port>110</Port>
+        <SPA>off</SPA>
+        <Encryption>TLS</Encryption>
+        <AuthRequired>on</AuthRequired>
+      </Protocol>
+    </Account>
+  </Response>
+</Autodiscover>
