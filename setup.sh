@@ -28,10 +28,10 @@ ROUNDCUBE_DB_NAME="roundcube"
 ROUNDCUBE_DB_PASS="roundcube"
 
 function installFirst {
-yum install -y httpd php phpmyadmin mariadb mariadb-server php-imap dovecot dovecot-mysql dovecot-pigeonhole php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve
+yum install -q -y httpd php phpmyadmin mariadb mariadb-server php-imap dovecot dovecot-mysql dovecot-pigeonhole php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve
 
 echo -e "\e[92mGetting file phpMyAdmin.conf ...\e[39m"
-wget --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-dovecot/master/phpMyadmin.conf -O /etc/httpd/conf.d/phpMyAdmin.conf
+wget -q --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-dovecot/master/phpMyadmin.conf -O /etc/httpd/conf.d/phpMyAdmin.conf
 
 sed -i 's/#ServerName www.example.com:80/ServerName '$MAIL_DOMAIN':80/g' /etc/httpd/conf/httpd.conf
 sed -i 's/ServerAdmin root@localhost/ServerAdmin root@$DOMAIN/g' /etc/httpd/conf/httpd.conf
@@ -47,7 +47,7 @@ systemctl enable mariadb
 
 echo -e "\e[92mGetting and installing POSTFIXADMIN...\e[39m"
 cd /usr/src
-wget --no-check-certificate --no-cache --no-cookies https://sourceforge.net/projects/postfixadmin/files/postfixadmin/postfixadmin-3.0.2/postfixadmin-3.0.2.tar.gz/download -O postfixadmin-3.0.2.tar.gz 
+wget -q --no-check-certificate --no-cache --no-cookies https://sourceforge.net/projects/postfixadmin/files/postfixadmin/postfixadmin-3.0.2/postfixadmin-3.0.2.tar.gz/download -O postfixadmin-3.0.2.tar.gz 
 tar -xvzf postfixadmin-3.0.2.tar.gz
 rm -rf /var/www/html/postfixadmin
 mv /usr/src/postfixadmin-3.0.2 /var/www/html/postfixadmin
@@ -55,7 +55,6 @@ mv /usr/src/postfixadmin-3.0.2 /var/www/html/postfixadmin
 touch /etc/httpd/conf.d/postfixadmin.conf
 tee /etc/httpd/conf.d/postfixadmin.conf << END
 Alias /postfixadmin /var/www/html/postfixadmin
-
 <Directory /var/www/html/postfixadmin>
     AddDefaultCharset UTF-8
     Require all granted
@@ -449,7 +448,7 @@ auth_username_chars = abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012345
 mail_location = maildir:/mnt/mail/%d/%u/
 
 # Если при аутентификации не указан домен, то добавить этот (в данном примере - пустой)
-auth_default_realm = ${MAIL_DOMAIN}
+auth_default_realm = ${DOMAIN}
 
 # Доступные варианты аутентификации (PLAIN, DIGEST-MD5, CRAM-MD5...).
 # Для того, чтобы иметь меньше головной боли ставьте PLAIN
@@ -667,7 +666,7 @@ MYSQL_SCRIPT
 
 echo -e "\e[92mInstalling RoundCube ...\e[39m"
 cd /usr/src
-wget --no-check-certificate --no-cache --no-cookies https://github.com/roundcube/roundcubemail/releases/download/1.2.9/roundcubemail-1.2.9-complete.tar.gz -O /usr/src/roundcubemail-1.2.9-complete.tar.gz
+wget -q --no-check-certificate --no-cache --no-cookies https://github.com/roundcube/roundcubemail/releases/download/1.2.9/roundcubemail-1.2.9-complete.tar.gz -O /usr/src/roundcubemail-1.2.9-complete.tar.gz
 tar -xzvf roundcubemail-*
 rm -fr /var/www/html/webmail
 mv roundcubemail-1.2.9 /var/www/html/webmail
@@ -683,12 +682,12 @@ tee /var/www/html/webmail/config/config.inc.php << END
 \$config['language'] = 'ru_RU';
 \$config['imap_auth_type'] = 'CRAM-MD5';
 \$config['smtp_auth_type'] = 'CRAM-MD5';
-\$config['!force_https'] = true;
-\$config['!use_https'] = true;
+\$config['force_https'] = true;
+\$config['use_https'] = true;
 END
 
 mkdir /var/www/html/webmail/autodiscover
-wget --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-dovecot/master/autodiscover.xml -O /var/www/html/webmail/autodiscover/autodiscover.xml
+wget -q --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-dovecot/master/autodiscover.xml -O /var/www/html/webmail/autodiscover/autodiscover.xml
 sed -i 's/MAIL_DOMAIN/'$MAIL_DOMAIN'/g' /var/www/html/webmail/autodiscover/autodiscover.xml
 sed -i 's/DOMAIN/'$DOMAIN'/g' /var/www/html/webmail/autodiscover/autodiscover.xml
 
