@@ -28,14 +28,23 @@ ROUNDCUBE_DB_NAME="roundcube"
 ROUNDCUBE_DB_PASS="roundcube"
 
 function installFirst {
-echo -e "\e[92mInstalling httpd php phpmyadmin mariadb mariadb-server php-imap dovecot dovecot-mysql dovecot-pigeonhole php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve ...\e[39m"
-yum install -q -y httpd php phpmyadmin mariadb mariadb-server php-imap dovecot dovecot-mysql dovecot-pigeonhole php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve
+echo -e "\e[92mInstalling httpd  ...\e[39m"
+yum install -q -y httpd 
+
+echo -e "\e[92mInstalling php phpmyadmin php-imap php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve ...\e[39m"
+yum install -q -y php phpmyadmin php-imap php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve
+
+echo -e "\e[92mInstalling mariadb mariadb-server dovecot dovecot-mysql dovecot-pigeonhole ...\e[39m"
+yum install -q -y mariadb mariadb-server dovecot dovecot-mysql dovecot-pigeonhole 
+
+echo -e "\e[92mInstalling dovecot dovecot-mysql dovecot-pigeonhole ...\e[39m"
+yum install -q -y dovecot dovecot-mysql dovecot-pigeonhole 
 
 echo -e "\e[92mGetting file phpMyAdmin.conf ...\e[39m"
 wget -q --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-dovecot/master/phpMyadmin.conf -O /etc/httpd/conf.d/phpMyAdmin.conf
 
 sed -i 's/#ServerName www.example.com:80/ServerName '$MAIL_DOMAIN':80/g' /etc/httpd/conf/httpd.conf
-sed -i 's/ServerAdmin root@localhost/ServerAdmin root@$DOMAIN/g' /etc/httpd/conf/httpd.conf
+sed -i 's/ServerAdmin root@localhost/ServerAdmin root@'$DOMAIN'/g' /etc/httpd/conf/httpd.conf
 
 echo -e "\e[92mStoping/Starting services ...\e[39m"
 systemctl stop postfix
