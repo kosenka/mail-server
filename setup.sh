@@ -792,12 +792,6 @@ Alias /.well-known/acme-challenge/ "/var/lib/letsencrypt/.well-known/acme-challe
 </Directory>
 END
 
-systemctl restart httpd
-
-certbot certonly --agree-tos --email $POSTFIX_ADMIN_NAME --webroot -w /var/lib/letsencrypt/ -d $MAIL_DOMAIN
-
-cat /etc/letsencrypt/live/$MAIL_DOMAIN/cert.pem /etc/ssl/certs/dhparam.pem >/etc/letsencrypt/live/$MAIL_DOMAIN/cert.dh.pem
-
 touch /etc/httpd/conf.d/ssl-params.conf
 tee /etc/httpd/conf.d/ssl-params.conf << END
 SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
@@ -813,6 +807,12 @@ SSLStaplingCache "shmcb:logs/stapling-cache(150000)"
 # Требует Apache >= 2.4.11
 SSLSessionTickets Off
 END
+
+systemctl restart httpd
+
+certbot certonly --agree-tos --email $POSTFIX_ADMIN_NAME --webroot -w /var/lib/letsencrypt/ -d $MAIL_DOMAIN
+
+cat /etc/letsencrypt/live/$MAIL_DOMAIN/cert.pem /etc/ssl/certs/dhparam.pem >/etc/letsencrypt/live/$MAIL_DOMAIN/cert.dh.pem
 
 touch /etc/httpd/conf.d/$MAIL_DOMAIN.conf
 tee -a /etc/httpd/conf.d/$MAIL_DOMAIN.conf << END
