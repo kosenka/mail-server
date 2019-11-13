@@ -28,6 +28,7 @@ ROUNDCUBE_DB_NAME="roundcube"
 ROUNDCUBE_DB_PASS="roundcube"
 
 function installFirst {
+echo -e "\e[92mInstalling httpd php phpmyadmin mariadb mariadb-server php-imap dovecot dovecot-mysql dovecot-pigeonhole php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve ...\e[39m"
 yum install -q -y httpd php phpmyadmin mariadb mariadb-server php-imap dovecot dovecot-mysql dovecot-pigeonhole php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve
 
 echo -e "\e[92mGetting file phpMyAdmin.conf ...\e[39m"
