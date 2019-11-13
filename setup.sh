@@ -28,9 +28,7 @@ ROUNDCUBE_DB_NAME="roundcube"
 ROUNDCUBE_DB_PASS="roundcube"
 
 function installFirst {
-yum install -y httpd php phpmyadmin mariadb mariadb-server php-imap
-yum install -y dovecot dovecot-mysql dovecot-pigeonhole
-yum install -y php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve
+yum install -y httpd php phpmyadmin mariadb mariadb-server php-imap dovecot dovecot-mysql dovecot-pigeonhole php-pear php-mcrypt php-intl php-ldap php-pear-Net-SMTP php-pear-Net-IDNA2 php-pear-Mail-Mime php-pear-Net-Sieve
 
 echo -e "\e[92mGetting file phpMyAdmin.conf ...\e[39m"
 wget --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-dovecot/master/phpMyadmin.conf -O /etc/httpd/conf.d/phpMyAdmin.conf
