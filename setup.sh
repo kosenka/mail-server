@@ -703,7 +703,7 @@ mysql -u root -p${ROOT_DB_PASS} --database=${ROUNDCUBE_DB_NAME} < /var/www/html/
 function installOpenDkim() {
 echo -e "\e[92mInstalling OpenDkim ...\e[39m"
 
-yum install -y opendkim
+yum install -q -y opendkim
 
 mkdir -p /etc/postfix/dkim && cd /etc/postfix/dkim
 opendkim-genkey -D /etc/postfix/dkim/ -d ${DOMAIN} -s mail
@@ -760,7 +760,7 @@ systemctl enable opendkim.service
 function installLetsEncrypt() {
 echo -e "\e[92mInstalling Let's Encrypt ...\e[39m"
 
-yum install -y mod_ssl openssl epel-release certbot
+yum install -q -y mod_ssl openssl epel-release certbot
 
 echo -e "\e[92mGenerating DHPARAM.PEM ...\e[39m"
 
