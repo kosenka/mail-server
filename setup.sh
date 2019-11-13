@@ -826,6 +826,15 @@ tee -a /etc/httpd/conf.d/$MAIL_DOMAIN.conf << END
 </VirtualHost>
 END
 
+tee /etc/hostname << END
+${MAIL_DOMAIN}
+END
+
+IP=$(hostname -I | awk '{print $1}')
+tee -a /etc/hosts << END
+$IP {$MAIL_DOMAIN} mail
+END
+
 systemctl restart httpd
 
 echo -e "\e[92mAdding certbot to crontab ...\e[39m"
@@ -839,15 +848,15 @@ rm mycron
 ######## run ##############
 
 SCRIPT_PATH="/root/iptables_rules.sh"
-wget --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-postfixadmin-dovecot-roundcube-httpd-let-s-encrypt-opendkim/master/iptables_rules.sh -O $SCRIPT_PATH
+wget -q --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-postfixadmin-dovecot-roundcube-httpd-let-s-encrypt-opendkim/master/iptables_rules.sh -O $SCRIPT_PATH
 chmod u+x $SCRIPT_PATH
 
-#installFirst
-#installPostfix
-#installDovecot
-#installRoundcube 
-#installOpenDkim
-#installLetsEncrypt
+installFirst
+installPostfix
+installDovecot
+installRoundcube 
+installOpenDkim
+installLetsEncrypt
 
 
 
