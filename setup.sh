@@ -179,27 +179,10 @@ smtpd_helo_required = yes
 smtp_always_send_ehlo = yes
 disable_vrfy_command = yes
 
-smtpd_helo_restrictions = permit_mynetworks,
- permit_sasl_authenticated,
- reject_non_fqdn_helo_hostname,
- reject_invalid_helo_hostname
-
 smtpd_data_restrictions = permit_mynetworks,
  permit_sasl_authenticated,
  reject_unauth_pipelining,
  reject_multi_recipient_bounce,
-
-smtpd_sender_restrictions = permit_mynetworks,
- permit_sasl_authenticated,
- reject_non_fqdn_sender,
- reject_unknown_sender_domain
-
-smtpd_recipient_restrictions = reject_non_fqdn_recipient,
- reject_unknown_recipient_domain,
- reject_multi_recipient_bounce,
- permit_mynetworks,
- permit_sasl_authenticated,
- reject_unauth_destination,
 
 smtp_tls_security_level = may
 smtpd_tls_security_level = may
@@ -212,7 +195,7 @@ smtpd_tls_cert_file = /etc/postfix/certs/cert.pem
 tls_random_source = dev:/dev/urandom
 
 # Ограничение максимального размера письма в байтах
-message_size_limit = 20000000
+message_size_limit = 50000000
 smtpd_soft_error_limit = 10
 smtpd_hard_error_limit = 15
 smtpd_error_sleep_time = 20
