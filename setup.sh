@@ -926,15 +926,6 @@ tee -a /etc/httpd/conf.d/$MAIL_DOMAIN.conf << END
 </VirtualHost>
 END
 
-tee /etc/hostname << END
-${MAIL_DOMAIN}
-END
-
-IP=$(hostname -I | awk '{print $1}')
-tee -a /etc/hosts << END
-$IP $MAIL_DOMAIN mail
-END
-
 systemctl restart httpd
 
 echo -e "\e[92mAdding certbot to crontab ...\e[39m"
@@ -956,6 +947,11 @@ sh $SCRIPT_PATH
 
 echo -e "\e[92mhostnamectl set-hostname ${MAIL_DOMAIN}\e[39m"
 hostnamectl set-hostname $MAIL_DOMAIN
+
+IP=$(hostname -I | awk '{print $1}')
+tee -a /etc/hosts << END
+$IP $MAIL_DOMAIN mail
+END
 
 installFirst
 installPostfix
