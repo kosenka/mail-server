@@ -241,6 +241,93 @@ dovecot_destination_recipient_limit = 1
 
 sender_bcc_maps = hash:/etc/postfix/sender_bcc_maps
 recipient_bcc_maps = hash:/etc/postfix/recipient_bcc_maps
+
+# Отклонять команду ETRN
+smtpd_etrn_restrictions = reject
+
+# Запретить исходящую почту с наших доменов, но с несуществующих у нас адресов
+smtpd_reject_unlisted_sender = yes
+
+# Запретить письма для неизвестных адресов получателей
+smtpd_reject_unlisted_recipient = yes
+
+#Описание списков исключений
+smtpd_restriction_classes = white_client_ip, black_client_ip, block_dsl, white_client, white_helo, black_client, mx_access
+
+# IP адреса, которые нужно пропускать всегда
+white_client_ip	= check_client_access hash:/etc/postfix/lists/white_client_ip
+
+# IP адреса, которые нужно блокировать всегда
+black_client_ip	= check_client_access hash:/etc/postfix/lists/black_client_ip
+
+# E-mail, которые нужно пропускать всегда
+white_client = check_sender_access hash:/etc/postfix/lists/white_client
+
+# E-mail, которые нужно блокировать всегда
+black_client = check_sender_access hash:/etc/postfix/lists/black_client
+
+# Неправильные значения HELO, которые мы тем не менее принимаем
+white_helo = check_sender_access hash:/etc/postfix/lists/white_helo
+
+# Правила для блокировки различных динамических ip.
+block_dsl = check_client_access regexp:/etc/postfix/lists/block_dsl
+
+# Список приватных сетей, которые не могут быть использованы в качестве IP для MX записей
+mx_access = check_sender_mx_access cidr:/etc/postfix/lists/mx_access
+
+# Проверки на основе данных, переданных в HELO/EHLO hostname
+smtpd_helo_restrictions = permit_mynetworks,
+ permit_sasl_authenticated,
+ white_client_ip,
+ white_helo,
+ black_client_ip,
+ block_dsl,
+ # Отказываем серверам, у которых в HELO несуществующий или не FQDN адрес 
+ reject_invalid_helo_hostname,
+ reject_non_fqdn_helo_hostname,
+ # Запрещаем приём писем от серверов, представляющихся адресом, для которого не существует A или MX записи.
+ reject_unknown_helo_hostname
+
+# Проверки клиентского компьютера или другого почтового сервера, который соединяется с сервером postfix для отправки письма
+smtpd_client_restrictions = permit_mynetworks,
+ permit_sasl_authenticated,
+ # Отвергает запрос, когда клиент отправляет команды SMTP раньше времени, еще не зная, поддерживает ли Postfix конвейерную обработку команд ESMTP
+ reject_unauth_pipelining,
+ # Блокируем клиентов с адресами from, домены которых не имеют A/MX записей
+ reject_unknown_address,
+ reject_unknown_client_hostname
+
+# Проверки исходящей или пересылаемой через нас почты на основе данных MAIL FROM
+smtpd_sender_restrictions = permit_mynetworks,
+ permit_sasl_authenticated,
+ white_client,
+ black_client,
+ # Запрет отправки писем, когда адрес MAIL FROM не совпадает с логином пользователя
+ reject_authenticated_sender_login_mismatch,
+ # Отклоняем письма от несуществующих доменов
+ reject_unknown_sender_domain,
+ # Отклоняем письма от доменов в не FQDN формате
+ reject_non_fqdn_sender,
+ # Отклонение писем с несуществующим адресом отправителя
+ reject_unlisted_sender,
+ reject_unauth_destination,
+ # Отклонять сообщения от отправителей, ящики которых не существуют, использовать аккуратно
+ #reject_unverified_sender,
+ mx_access
+
+# Правила приема почты нашим сервером на основе данных RCPT TO
+smtpd_recipient_restrictions = permit_mynetworks,
+ permit_sasl_authenticated,
+ # Отклоняет всю почту, что адресована не для наших доменов
+ reject_unauth_destination,
+ # Отклонение писем с несуществующим адресом получателя
+ reject_unlisted_recipient,
+ # Отклоняет сообщения на несуществующие домены
+ reject_unknown_recipient_domain,
+ # Отклоняет сообщения если получатель не в формате FQDN
+ reject_non_fqdn_recipient,
+ # Отклоняем прием от отправителя с пустым адресом письма, предназначенным нескольким получателям.
+ reject_multi_recipient_bounce
 END
 
 rm -fr /etc/postfix/mysql 
