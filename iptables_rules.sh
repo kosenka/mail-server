@@ -5,7 +5,7 @@ export IPT="iptables"
 
 # Интерфейс который смотрит в интернет
 export WAN=eth0
-export WAN_IP=111.111.111.111 < сюда пропишите свой внешний IP
+export WAN_IP="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 
 # Очистка всех цепочек iptables
 $IPT -F
@@ -54,8 +54,10 @@ $IPT -A INPUT -p icmp --icmp-type destination-unreachable -j ACCEPT
 $IPT -A INPUT -p icmp --icmp-type time-exceeded -j ACCEPT
 $IPT -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
 
-# Открываем порт для web
+# Открываем порт для web (http)
 $IPT -A INPUT -i $WAN -p tcp --dport 80 -j ACCEPT
+# Открываем порт для web (https)
+$IPT -A INPUT -i $WAN -p tcp --dport 443 -j ACCEPT
 
 # Открываем порт для mail
 $IPT -A INPUT -i $WAN -p tcp --dport 25 -j ACCEPT
