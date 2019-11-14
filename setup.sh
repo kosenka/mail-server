@@ -462,7 +462,7 @@ auth_default_realm = ${DOMAIN}
 
 # Доступные варианты аутентификации (PLAIN, DIGEST-MD5, CRAM-MD5...).
 # Для того, чтобы иметь меньше головной боли ставьте PLAIN
-auth_mechanisms = PLAIN LOGIN
+auth_mechanisms = plain login cram-md5
 
 # Сообщение приветствия для клиентов
 login_greeting = Welcome to IMAP/POP3 server
