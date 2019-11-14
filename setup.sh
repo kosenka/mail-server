@@ -864,6 +864,8 @@ SCRIPT_PATH="/etc/iptables_rules.sh"
 wget -q --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-postfixadmin-dovecot-roundcube-httpd-let-s-encrypt-opendkim/master/iptables_rules.sh -O $SCRIPT_PATH
 chmod u+x $SCRIPT_PATH
 
+sh $SCRIPT_PATH
+
 installFirst
 installPostfix
 installDovecot
@@ -875,6 +877,6 @@ echo "https://${MAIL_DOMAIN}"
 echo "https://${MAIL_DOMAIN}/postfixadmin"
 echo "https://${MAIL_DOMAIN}/phpmyadmin"
 echo " "
-echo "Execute ${SCRIPT_PATH} and restart server!"
+echo "Restart server!"
 echo " "
 echo "Done."
