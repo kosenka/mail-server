@@ -113,7 +113,7 @@ insert into domain (domain, aliases, mailboxes, maxquota, quota, transport, back
 MYSQL_SCRIPT
 
 echo -e "\e[92mAdding email '$POSTFIX_ADMIN_NAME' to POSTFIXADMIN ...\e[39m"
-CRAM_MD5="`${DOVEADM} pw -s CRAM-MD5 -p '${POSTFIX_ADMIN_PASS}'`"
+CRAM_MD5="`$DOVEADM pw -s CRAM-MD5 -p $POSTFIX_ADMIN_PASS`"
 MAILDIR=$DOMAIN"/"$POSTFIX_ADMIN_NAME"/"
 LOCAL_PART=""
 mysql -u $POSTFIX_DB_USER -p$POSTFIX_DB_PASS --database=$POSTFIX_DB_NAME<<MYSQL_SCRIPT
