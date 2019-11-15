@@ -28,6 +28,9 @@ ROUNDCUBE_DB_NAME="roundcube"
 ROUNDCUBE_DB_PASS="roundcube"
 
 function installFirst {
+echo -e "\e[92mDownload and Installing mailx cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain postfix  ...\e[39m"
+yum install -q -y mailx cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain postfix
+
 echo -e "\e[92mDownload and Installing httpd  ...\e[39m"
 yum install -q -y httpd 
 
