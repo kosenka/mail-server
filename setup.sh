@@ -29,8 +29,11 @@ ROUNDCUBE_DB_PASS="roundcube"
 
 function installFirst {
 echo -e "\e[92mDownload and Installing mailx cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain postfix  ...\e[39m"
-yum install -q -y epel-release net-tools mc iftop htop atop lsof wget bzip2 traceroute gdisk mailx cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain postfix
+
+yum install -q -y epel-release
 rpm -Uhv http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+
+yum install -q -y net-tools mc iftop htop atop lsof wget bzip2 traceroute gdisk mailx cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain postfix
 
 rm /usr/share/mc/syntax/unknown.syntax
 cp /usr/share/mc/syntax/sh.syntax /usr/share/mc/syntax/unknown.syntax
@@ -38,6 +41,29 @@ cp /usr/share/mc/syntax/sh.syntax /usr/share/mc/syntax/unknown.syntax
 rm /etc/localtime
 ln -s /usr/share/zoneinfo/Europe/Moscow /etc/localtime
 timedatectl set-timezone Europe/Moscow
+
+sed -i 's/SELINUX=enabled/SELINUX=disabled/g' /etc/sysconfig/selinux
+sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+setenforce 0
+
+tee -a /root/.bashrc << END
+export HISTSIZE=10000
+export HISTTIMEFORMAT="%h %d %H:%M:%S "
+PROMPT_COMMAND='history -a'
+export HISTIGNORE="ls:ll:history:w:htop"
+END
+
+source /root/.bashrc
+
+localectl set-locale LANG=ru_RU.UTF-8
+
+timedatectl set-timezone Europe/Moscow
+
+tee /etc/rsyslog.d/ignore-systemd-session-slice.conf << END
+if $programname == "systemd" and ($msg contains "Starting Session" or $msg contains "Started Session" or $msg contains "Created slice" or $msg contains "Starting user-" or $msg contains "Starting User Slice of" or $msg contains "Removed session" or $msg contains "Removed slice User Slice of" or $msg contains "Stopping User Slice of") then stop
+END
+
+systemctl restart rsyslog
 
 echo -e "\e[92mDownload and Installing httpd  ...\e[39m"
 yum install -q -y httpd 
