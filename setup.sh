@@ -29,7 +29,15 @@ ROUNDCUBE_DB_PASS="roundcube"
 
 function installFirst {
 echo -e "\e[92mDownload and Installing mailx cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain postfix  ...\e[39m"
-yum install -q -y mailx cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain postfix
+yum install -q -y epel-release net-tools mc iftop htop atop lsof wget bzip2 traceroute gdisk mailx cyrus-sasl cyrus-sasl-lib cyrus-sasl-plain postfix
+rpm -Uhv http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+
+rm /usr/share/mc/syntax/unknown.syntax
+cp /usr/share/mc/syntax/sh.syntax /usr/share/mc/syntax/unknown.syntax
+
+rm /etc/localtime
+ln -s /usr/share/zoneinfo/Europe/Moscow /etc/localtime
+timedatectl set-timezone Europe/Moscow
 
 echo -e "\e[92mDownload and Installing httpd  ...\e[39m"
 yum install -q -y httpd 
