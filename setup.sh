@@ -958,12 +958,11 @@ rm mycron
 
 ######## run ##############
 
-SCRIPT_PATH="/etc/iptables_rules.sh"
-wget -q --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-postfixadmin-dovecot-roundcube-httpd-let-s-encrypt-opendkim/master/iptables_rules.sh -O $SCRIPT_PATH
-chmod u+x $SCRIPT_PATH
-
-echo -e "\e[92msh ${SCRIPT_PATH}\e[39m"
-sh $SCRIPT_PATH
+#SCRIPT_PATH="/etc/iptables_rules.sh"
+#wget -q --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-postfixadmin-dovecot-roundcube-httpd-let-s-encrypt-opendkim/master/iptables_rules.sh -O $SCRIPT_PATH
+#chmod u+x $SCRIPT_PATH
+#echo -e "\e[92msh ${SCRIPT_PATH}\e[39m"
+#sh $SCRIPT_PATH
 
 echo -e "\e[92mhostnamectl set-hostname ${MAIL_DOMAIN}\e[39m"
 hostnamectl set-hostname $MAIL_DOMAIN
