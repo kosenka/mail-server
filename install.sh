@@ -33,6 +33,8 @@ systemctl enable mariadb
 echo -e "\e[92mInstalling Dovecot ...\e[39m"
 yum -y install dovecot dovecot-mysql dovecot-pigeonhole
 
+
+
 cd /usr/src
 wget --no-check-certificate --no-cache --no-cookies https://sourceforge.net/projects/postfixadmin/files/postfixadmin/postfixadmin-3.0.2/postfixadmin-3.0.2.tar.gz/download -O postfixadmin-3.0.2.tar.gz 
 tar -xvzf postfixadmin-3.0.2.tar.gz
@@ -101,25 +103,25 @@ mail_owner = postfix
 
 myhostname = $MAIL_DOMAIN
 mydomain = $DOMAIN
-myorigin = $myhostname
+myorigin = \$myhostname
 
 inet_interfaces = all
 inet_protocols = ipv4
 
-mydestination = localhost.$mydomain, localhost
+mydestination = localhost.\$mydomain, localhost
 unknown_local_recipient_reject_code = 550
 mynetworks = 127.0.0.0/8
 
 alias_maps = hash:/etc/aliases
 alias_database = hash:/etc/aliases
 
-smtpd_banner = $myhostname ESMTP $mail_name
+smtpd_banner = \$myhostname ESMTP \$mail_name
 
 debug_peer_level = 2
 # Строки с PATH и ddd должны быть с отступом в виде табуляции от начала строки
 debugger_command =
          PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
-         ddd $daemon_directory/$process_name $process_id & sleep 5
+         ddd \$daemon_directory/\$process_name \$process_id & sleep 5
 
 sendmail_path = /usr/sbin/sendmail.postfix
 newaliases_path = /usr/bin/newaliases.postfix
@@ -171,7 +173,7 @@ smtpd_tls_security_level = may
 smtpd_tls_loglevel = 1
 smtpd_tls_received_header = yes
 smtpd_tls_session_cache_timeout = 3600s
-smtp_tls_session_cache_database = btree:$data_directory/smtp_tls_session_cache
+smtp_tls_session_cache_database = btree:\$data_directory/smtp_tls_session_cache
 smtpd_tls_key_file = /etc/postfix/certs/key.pem
 smtpd_tls_cert_file = /etc/postfix/certs/cert.pem
 tls_random_source = dev:/dev/urandom
@@ -292,8 +294,8 @@ touch /etc/postfix/recipient_bcc_maps
 touch /etc/postfix/sender_bcc_maps
 postmap /etc/postfix/recipient_bcc_maps /etc/postfix/sender_bcc_maps
 
-echo -e "\e[92mConfiguring Dovecot: /etc/postfix/master.cf ...\e[39m"
-tee /etc/postfix/master.cf << END
+echo -e "\e[92mConfiguring Dovecot: /etc/dovecot/dovecot.conf ...\e[39m"
+tee /etc/dovecot/dovecot.conf << END
 listen = * [::]
 
 mail_plugins = mailbox_alias acl
@@ -390,7 +392,7 @@ plugin {
 }
 
 protocol lda {
- mail_plugins = $mail_plugins sieve
+ mail_plugins = \$mail_plugins sieve
  auth_socket_path = /var/run/dovecot/auth-master
  deliver_log_format = mail from %f: msgid=%m %$
  log_path = /var/log/dovecot/lda-errors.log
@@ -409,13 +411,13 @@ protocol lmtp {
 }
 
 protocol imap {
- mail_plugins = $mail_plugins imap_acl
+ mail_plugins = \$mail_plugins imap_acl
  imap_client_workarounds = tb-extra-mailbox-sep
  mail_max_userip_connections = 30
 }
 
 protocol pop3 {
- mail_plugins = $mail_plugins
+ mail_plugins = \$mail_plugins
  pop3_client_workarounds = outlook-no-nuls oe-ns-eoh
  pop3_uidl_format = %08Xu%08Xv
  mail_max_userip_connections = 30
