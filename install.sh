@@ -121,7 +121,7 @@ mysql -u $POSTFIX_DB_USER -p$POSTFIX_DB_PASS --database=$POSTFIX_DB_NAME<<MYSQL_
 insert into mailbox (username, password, maildir, quota, local_part, domain, active, created, modified) values ('${POSTFIX_ADMIN_NAME}', '${CRAM_MD5}', '${MAILDIR}', 0, '${LOCAL_PART}', '${DOMAIN}', 1, NOW(), NOW());
 insert into alias (address, goto, domain, created, modified, active) values ('${POSTFIX_ADMIN_NAME}', '${POSTFIX_ADMIN_NAME}', '${DOMAIN}', NOW(), NOW(), 1);
 MYSQL_SCRIPT
-}
+
 
 echo -e "\e[92mConfiguring PostFix: main.cf ...\e[39m"
 
