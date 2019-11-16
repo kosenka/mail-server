@@ -1,17 +1,50 @@
 #!/bin/bash
 
-DOMAIN="***.ru"
-MAIL_DOMAIN="***.ru"
+DOMAIN=$(whiptail --title "enter domain name" --inputbox "??" 10 60 domain.ru 3>&1 1>&2 2>&3)
+exitstatus=$?
+if [ $exitstatus = 0 ]; then
+echo " " 
+else
+exit
+fi
+
+MAIL_DOMAIN=$(whiptail --title "enter mail domain name" --inputbox "??" 10 60 mail.domain.ru 3>&1 1>&2 2>&3)
+exitstatus=$?
+if [ $exitstatus = 0 ]; then
+echo " " 
+else
+exit
+fi
 
 ROOT_DB_USER="root"
-ROOT_DB_PASS="***"
+ROOT_DB_PASS=$(whiptail --title "enter ROOT database password" --inputbox "??" 10 60 3>&1 1>&2 2>&3)
+exitstatus=$?
+if [ $exitstatus = 0 ]; then
+echo " " 
+else
+exit
+fi
 
 POSTFIX_DB_USER="postfix"
 POSTFIX_DB_NAME="postfix"
 POSTFIX_DB_PASS="postfix"
-POSTFIX_SETUP_PASS="***"
+
+POSTFIX_SETUP_PASS=$(whiptail --title "enter Postfix setup password" --inputbox "??" 10 60 3>&1 1>&2 2>&3)
+exitstatus=$?
+if [ $exitstatus = 0 ]; then
+echo " " 
+else
+exit
+fi
+
 POSTFIX_ADMIN_NAME="root@"$DOMAIN
-POSTFIX_ADMIN_PASS="***"
+POSTFIX_ADMIN_PASS=$(whiptail --title "enter Postfix admin password" --inputbox "??" 10 60 3>&1 1>&2 2>&3)
+exitstatus=$?
+if [ $exitstatus = 0 ]; then
+echo " " 
+else
+exit
+fi
 
 ROUNDCUBE_DB_USER="roundcube"
 ROUNDCUBE_DB_NAME="roundcube"
