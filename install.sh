@@ -51,7 +51,7 @@ ROUNDCUBE_DB_NAME="roundcube"
 ROUNDCUBE_DB_PASS="roundcube"
 
 yum -y update
-yum -y install httpd php phpmyadmin mariadb mariadb-server php-imap
+yum -y install httpd php phpmyadmin mariadb mariadb-server php-imap ca-certificates
 
 cp /etc/httpd/conf.d/phpMyAdmin.conf /etc/httpd/conf.d/phpMyAdmin.conf.orig
 wget --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-dovecot/master/phpMyadmin.conf -O /etc/httpd/conf.d/phpMyAdmin.conf
@@ -200,6 +200,8 @@ smtpd_recipient_restrictions = reject_non_fqdn_recipient,
  permit_mynetworks,
  permit_sasl_authenticated,
  reject_unauth_destination,
+
+smtp_tls_CAfile = /etc/ssl/certs/ca-bundle.crt
 
 smtp_tls_security_level = may
 smtpd_tls_security_level = may
