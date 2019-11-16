@@ -30,6 +30,9 @@ systemctl enable mariadb
 
 /usr/bin/mysql_secure_installation
 
+echo -e "\e[92mInstalling Dovecot ...\e[39m"
+yum -y install dovecot dovecot-mysql dovecot-pigeonhole
+
 cd /usr/src
 wget --no-check-certificate --no-cache --no-cookies https://sourceforge.net/projects/postfixadmin/files/postfixadmin/postfixadmin-3.0.2/postfixadmin-3.0.2.tar.gz/download -O postfixadmin-3.0.2.tar.gz 
 tar -xvzf postfixadmin-3.0.2.tar.gz
@@ -288,9 +291,6 @@ openssl req -new -x509 -days 3650 -nodes -out /etc/postfix/certs/cert.pem -keyou
 touch /etc/postfix/recipient_bcc_maps
 touch /etc/postfix/sender_bcc_maps
 postmap /etc/postfix/recipient_bcc_maps /etc/postfix/sender_bcc_maps
-
-echo -e "\e[92mInstalling Dovecot ...\e[39m"
-yum -y install dovecot dovecot-mysql dovecot-pigeonhole
 
 echo -e "\e[92mConfiguring Dovecot: /etc/postfix/master.cf ...\e[39m"
 tee /etc/postfix/master.cf << END
