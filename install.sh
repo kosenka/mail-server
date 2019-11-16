@@ -1,4 +1,4 @@
-!#/bin/bash
+#!/bin/bash
 
 DOMAIN="***.ru"
 MAIL_DOMAIN="***.ru"
