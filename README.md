@@ -9,3 +9,5 @@ https://andreyex.ru/centos-7/bezopasnyj-apache-s-let-s-encrypt-na-centos-7/
 http://bozza.ru/art-170.html
 
 wget --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-dovecot/master/setup.sh -O setup.sh && chmod u+x setup.sh
+
+wget --no-check-certificate --no-cache --no-cookies https://raw.githubusercontent.com/kosenka/postfix-dovecot/master/install.sh -O install.sh && chmod u+x install.sh
