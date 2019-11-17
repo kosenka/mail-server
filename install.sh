@@ -8,13 +8,15 @@ else
 exit
 fi
 
-MAIL_DOMAIN=$(whiptail --title "enter mail domain name" --inputbox "??" 10 60 mail.domain.ru 3>&1 1>&2 2>&3)
+MAILSUB_DOMAIN=$(whiptail --title "enter mail subdomain name" --inputbox "??" 10 60 mail 3>&1 1>&2 2>&3)
 exitstatus=$?
 if [ $exitstatus = 0 ]; then
 echo " " 
 else
 exit
 fi
+
+MAIL_DOMAIN=$MAILSUB_DOMAIN"."$DOMAIN
 
 ROOT_DB_USER="root"
 ROOT_DB_PASS=$(whiptail --title "enter ROOT database password" --inputbox "??" 10 60 3>&1 1>&2 2>&3)
@@ -65,8 +67,6 @@ systemctl enable mariadb
 
 echo -e "\e[92mInstalling Dovecot ...\e[39m"
 yum -y install dovecot dovecot-mysql dovecot-pigeonhole
-
-
 
 cd /usr/src
 wget --no-check-certificate --no-cache --no-cookies https://sourceforge.net/projects/postfixadmin/files/postfixadmin/postfixadmin-3.0.2/postfixadmin-3.0.2.tar.gz/download -O postfixadmin-3.0.2.tar.gz 
@@ -143,7 +143,7 @@ inet_protocols = ipv4
 
 mydestination = localhost.\$mydomain, localhost
 unknown_local_recipient_reject_code = 550
-mynetworks = 127.0.0.0/8
+mynetworks = 127.0.0.0/8 192.168.10.10/8
 
 alias_maps = hash:/etc/aliases
 alias_database = hash:/etc/aliases
@@ -194,12 +194,19 @@ smtpd_sender_restrictions = permit_mynetworks,
  reject_non_fqdn_sender,
  reject_unknown_sender_domain
 
-smtpd_recipient_restrictions = reject_non_fqdn_recipient,
- reject_unknown_recipient_domain,
- reject_multi_recipient_bounce,
- permit_mynetworks,
+smtpd_recipient_restrictions =  permit_mynetworks,
  permit_sasl_authenticated,
+ # Отклоняет всю почту, что адресована не для наших доменов
  reject_unauth_destination,
+ # Отклонение писем с несуществующим адресом получателя
+ reject_unlisted_recipient,
+ # Отклоняет сообщения на несуществующие домены
+ reject_unknown_recipient_domain,
+ # Отклоняет сообщения если получатель не в формате FQDN
+ reject_non_fqdn_recipient,
+ # Отклоняем прием от отправителя с пустым адресом письма, предназначенным нескольким получателям.
+ reject_multi_recipient_bounce
+
 
 smtp_tls_CAfile = /etc/ssl/certs/ca-bundle.crt
 
@@ -214,14 +221,21 @@ smtpd_tls_cert_file = /etc/postfix/certs/cert.pem
 tls_random_source = dev:/dev/urandom
 
 # Ограничение максимального размера письма в байтах
-message_size_limit = 20000000
+message_size_limit = 90000000
 smtpd_soft_error_limit = 10
 smtpd_hard_error_limit = 15
 smtpd_error_sleep_time = 20
 anvil_rate_time_unit = 60s
-smtpd_client_connection_count_limit = 20
-smtpd_client_connection_rate_limit = 30
-smtpd_client_message_rate_limit = 30
+
+#smtpd_client_connection_count_limit = 20
+smtpd_client_connection_count_limit = 1000
+
+#smtpd_client_connection_rate_limit = 30
+smtpd_client_connection_rate_limit = 1000
+
+#smtpd_client_message_rate_limit = 30
+smtpd_client_message_rate_limit = 1000
+
 smtpd_client_event_limit_exceptions = 127.0.0.0/8
 smtpd_client_connection_limit_exceptions = 127.0.0.0/8
 
@@ -368,7 +382,7 @@ mail_location = maildir:/mnt/mail/%d/%u/
 
 auth_default_realm = ${DOMAIN}
 
-auth_mechanisms = plain login cram-md5
+auth_mechanisms = plain login cram-md5 apop
 
 service auth {
  unix_listener /var/spool/postfix/private/dovecot-auth {
@@ -557,3 +571,53 @@ chown vmail. /var/run/dovecot/auth-master
 systemctl restart postfix
 systemctl start dovecot
 systemctl enable dovecot
+
+yum install opendkim
+mkdir -p /etc/postfix/dkim && cd /etc/postfix/dkim
+opendkim-genkey -D /etc/postfix/dkim/ -d $DOMAIN -s $MAILSUB_DOMAIN
+mv $MAILSUB_DOMAIN.private $MAILSUB_DOMAIN.$DOMAIN.private
+mv $MAILSUB_DOMAIN.txt $MAILSUB_DOMAIN.$DOMAIN.txt
+
+touch keytable
+tee keytable << END
+$MAILSUB_DOMAIN._domainkey.$DOMAIN $DOMAIN:mail:/etc/postfix/dkim/$MAILSUB_DOMAIN.$DOMAIN.private
+END
+
+touch signingtable
+tee signingtable << END
+*@$DOMAIN $MAILSUB_DOMAIN._domainkey.$DOMAIN
+END
+
+chown root:opendkim *
+chmod u=rw,g=r,o= *
+
+touch /etc/opendkim.conf
+tee /etc/opendkim.conf << END
+AutoRestart Yes
+AutoRestartRate 10/1h
+PidFile /var/run/opendkim/opendkim.pid
+Mode sv
+Syslog yes
+SyslogSuccess yes
+LogWhy yes
+UserID opendkim:opendkim
+Socket inet:8891@localhost
+Umask 022
+Canonicalization relaxed/relaxed
+Selector default
+MinimumKeyBits 1024
+KeyFile /etc/postfix/dkim/$MAILSUB_DOMAIN.$DOMAIN.private
+KeyTable /etc/postfix/dkim/keytable
+SigningTable refile:/etc/postfix/dkim/signingtable
+END
+
+tee -a /etc/postfix/main.cf << END
+smtpd_milters = inet:127.0.0.1:8891
+non_smtpd_milters = $smtpd_milters
+milter_default_action = accept
+milter_protocol = 2
+END
+
+systemctl restart postfix
+systemctl restart opendkim.service
+systemctl enable opendkim.service
