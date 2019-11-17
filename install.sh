@@ -588,6 +588,11 @@ tee signingtable << END
 *@$DOMAIN $MAILSUB_DOMAIN._domainkey.$DOMAIN
 END
 
+touch TrustedHosts
+tee TrustedHosts << END
+192.168.10.10
+END
+
 chown root:opendkim *
 chmod u=rw,g=r,o= *
 
@@ -609,6 +614,7 @@ MinimumKeyBits 1024
 KeyFile /etc/postfix/dkim/$MAILSUB_DOMAIN.$DOMAIN.private
 KeyTable /etc/postfix/dkim/keytable
 SigningTable refile:/etc/postfix/dkim/signingtable
+InternalHosts refile:/etc/postfix/dkim/TrustedHosts
 END
 
 tee -a /etc/postfix/main.cf << END
