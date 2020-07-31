@@ -54,27 +54,12 @@ $IPT -A INPUT -p icmp --icmp-type destination-unreachable -j ACCEPT
 $IPT -A INPUT -p icmp --icmp-type time-exceeded -j ACCEPT
 $IPT -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
 
-# Открываем порт для web (http)
-$IPT -A INPUT -i $WAN -p tcp --dport 80 -j ACCEPT
-# Открываем порт для web (https)
-$IPT -A INPUT -i $WAN -p tcp --dport 443 -j ACCEPT
-
-# Открываем порт для mail
-$IPT -A INPUT -i $WAN -p tcp --dport 25 -j ACCEPT
-$IPT -A INPUT -i $WAN -p tcp --dport 110 -j ACCEPT
-$IPT -A INPUT -i $WAN -p tcp --dport 143 -j ACCEPT
-$IPT -A INPUT -i $WAN -p tcp --dport 465 -j ACCEPT
-$IPT -A INPUT -i $WAN -p tcp --dport 587 -j ACCEPT
-$IPT -A INPUT -i $WAN -p tcp --dport 993 -j ACCEPT
-$IPT -A INPUT -i $WAN -p tcp --dport 995 -j ACCEPT
-
 # Открываем порт для ssh
-$IPT -A INPUT -i $WAN -p tcp --dport 22333 -j ACCEPT
-
-# Открываем порт для DNS
-#$IPT -A INPUT -i $WAN -p udp --dport 53 -j ACCEPT
-# Открываем порт для NTP
-#$IPT -A INPUT -i $WAN -p udp --dport 123 -j ACCEPT
+$IPT -A INPUT -i $WAN -p tcp --dport 22 -j ACCEPT
+# Открываем порт для http
+$IPT -A INPUT -i $WAN -p tcp --dport 80 -j ACCEPT
+# Открываем порт для https
+$IPT -A INPUT -i $WAN -p tcp --dport 443 -j ACCEPT
 
 # Логирование
 # Все что не разрешено, но ломится отправим в цепочку undef
