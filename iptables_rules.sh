@@ -73,11 +73,11 @@ $IPT -A FORWARD -j undef_fw
 
 # Логируем все из undef
 
-$IPT -A undef_in -j LOG --log-level info --log-prefix "-- IN -- DROP "
+#$IPT -A undef_in -j LOG --log-level info --log-prefix "-- IN -- DROP "
 $IPT -A undef_in -j DROP
-$IPT -A undef_out -j LOG --log-level info --log-prefix "-- OUT -- DROP "
+#$IPT -A undef_out -j LOG --log-level info --log-prefix "-- OUT -- DROP "
 $IPT -A undef_out -j DROP
-$IPT -A undef_fw -j LOG --log-level info --log-prefix "-- FW -- DROP "
+#$IPT -A undef_fw -j LOG --log-level info --log-prefix "-- FW -- DROP "
 $IPT -A undef_fw -j DROP
 
 # Записываем правила
